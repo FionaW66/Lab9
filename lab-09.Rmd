@@ -1,7 +1,7 @@
 ---
 title: "Lab 09 - Grading the professor, Pt. 1"
-author: "Insert your name here"
-date: "Insert date here"
+author: "Fiona Wang"
+date: "Mar-20-2025"
 output: github_document
 ---
 
@@ -15,13 +15,23 @@ library(openintro)
 
 ## Exercise 1
 
-*Provide your answer here.*  
-Add code chunks as needed. Don't forget to label your code chunks.
-
-
-```{r exercise1_code}
-# Add your R code here
+```{r loaddata}
+data <- evals
 ```
+
+```{r scorehist, message = FALSE}
+data %>% 
+  ggplot(aes(x = score)) + geom_histogram(binwidth = 0.1, color = "black")
+```
+
+As we can see from the graph, the majority of the data is on the right, and the tail extends to the left. Thus it is left-skewed. It doesn't show me a lot of details about students' rate. I want to include a boxplot and the summary statistics here too. 
+```{r scorebox}
+data %>% 
+  ggplot(aes(y = score)) + geom_boxplot()
+summary(data$score)
+```
+
+The mean rating is 4.18. Students were, on average, pretty satisfied with their professors. With a max of 5, and a min of 2.3. There are also 3 outliers on the lower end according to the boxplot. This is what I expected. Students rated on 463 courses taught by 94 professors, so I expected this variance. I think an average of 4.18 is fair and pretty good. 
 
 ## Exercise 2
 
