@@ -52,12 +52,37 @@ good.
 
 ## Exercise 2
 
-*Provide your answer here.*  
-Add code chunks as needed.
+``` r
+data %>% 
+  ggplot(aes(x = bty_avg, y = score)) + geom_point(alpha = 0.2, color = "blue") + 
+  labs(title = "Relationship Between Beauty Rating and Overall Ratings for Professors")
+```
+
+![](lab-09_files/figure-gfm/scorebty-1.png)<!-- -->
+
+I made the dots transparent. For the darker dots, it means that more
+people rated appearance and score that way. According to this graph, I
+think there is a positive relationship between score and beauty rating.
+However, it’s not very clear. There could be no relationship too because
+the dots are pretty scattered all over the place.
+
+### Exercise 3
 
 ``` r
-# Add your R code here
+data %>% 
+  ggplot(aes(x = bty_avg, y = score)) + geom_jitter() + 
+  labs(title = "Relationship Between Beauty Rating and Overall Ratings for Professors")
 ```
+
+![](lab-09_files/figure-gfm/jitter-1.png)<!-- -->
+
+I don’t know what jitter means, so I looked it up in the Help panel. It
+says that jitter “adds a small amount of random variation to the
+location fo each point”. It can help with reducing overlap, especially
+for our dataset which has a lot of overlapping points. This means that
+the first graph might be misleading because we can’t see all the data as
+they were stacked on top of each other. However, I made the dots
+transparent, so I still retained this information.
 
 ## Additional Exercises
 
