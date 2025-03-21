@@ -84,9 +84,42 @@ the first graph might be misleading because we can’t see all the data as
 they were stacked on top of each other. However, I made the dots
 transparent, so I still retained this information.
 
-## Additional Exercises
+### Exercise 4
 
-*Repeat the format above for additional exercises.*
+``` r
+m_bty <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ bty_avg, data = data) %>% 
+  tidy()
+m_bty
+```
+
+    ## # A tibble: 2 × 5
+    ##   term        estimate std.error statistic   p.value
+    ##   <chr>          <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)   3.88      0.0761     51.0  1.56e-191
+    ## 2 bty_avg       0.0666    0.0163      4.09 5.08e-  5
+
+From the output table, the linear model will be: score = 3.88 +
+0.067(bty_avg)
+
+### Exercise 5
+
+``` r
+data %>% 
+  ggplot(aes(x = bty_avg, y = score)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE) + 
+  labs(title = "Relationship Between Beauty Rating and Overall Ratings for Professors",
+       x = "Average Beauty Rating",
+       y = "Score")
+```
+
+![](lab-09_files/figure-gfm/replot-1.png)<!-- -->
+
+### Exercise 6
+
+The slope of the linear model is 0.0666. This means that with one unit
+increase in average beauty rating, there will be a 0.0666 unit increase
+in the average professor evaluation.
 
 ## Hint
 
