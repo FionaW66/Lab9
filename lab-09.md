@@ -193,6 +193,119 @@ average of 4.093 in score. Males, on average, had a 0.142 higher score
 in rating than females. The 0 here makes sense in the context of the
 data.
 
-## Hint
+### Exercise 10 More on gender
 
-For Exercise 12, the `relevel()` function can be helpful!
+Based on the previous exercise, we can write down the equation for each
+gender.  
+Female: score = 4.093 + 0.142(0) = 4.093.  
+Male: score = 4.093 + 0.142(1) = 4.235
+
+### Exercise 11 Rank model
+
+``` r
+m_rank <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ rank, data = data)
+tidy(m_rank)
+```
+
+    ## # A tibble: 3 × 5
+    ##   term             estimate std.error statistic   p.value
+    ##   <chr>               <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)         4.28     0.0537     79.9  1.02e-271
+    ## 2 ranktenure track   -0.130    0.0748     -1.73 8.37e-  2
+    ## 3 ranktenured        -0.145    0.0636     -2.28 2.28e-  2
+
+There are two slopes.  
+The overall equation is: score = 4.284 -0.1297(x1) - 0.1452(x2) Again, I
+want to have an idea of how these three categories are represented using
+numerical values.
+
+``` r
+data %>% 
+  group_by(rank) %>% 
+  summarise(mean_score = mean(score, na.rm=TRUE))
+```
+
+    ## # A tibble: 3 × 2
+    ##   rank         mean_score
+    ##   <fct>             <dbl>
+    ## 1 teaching           4.28
+    ## 2 tenure track       4.15
+    ## 3 tenured            4.14
+
+It seems like teaching is the reference group. There are two slopes. The
+first slope (-0.13) is for the tenure track group, and the reference
+group is the teaching group, score = 4.284 - 0.13(1) - 0.15(0) = 4.155.
+This means that when the rank is 0 (teaching group), the mean score is
+4.284, which is the intercept. With one unit increase in rank, there
+will be a 0.13 unit decrease in score. One unit increase in rank refers
+to the tenure track group. So, the tenure track group has an average
+scoring of 4.155.  
+The second slope (-0.145) is for the tenured group, and the reference
+group is the teaching group, score = 4.284 - 0.13(0) - 0.145(1) = 4.139.
+This means that when the rank is 0 (teaching group), the mean score is
+4.284, which is the intercept. With one unit increase in rank, there
+will be a 0.145 unit decrease in score. One unit increase in rank refers
+to the tenured group in this equation. So, the tenured group has an
+average scoring of 4.139.
+
+### Exercise 12 Creating rank_relevel
+
+``` r
+data$rank_relevel <- relevel(data$rank, ref = "tenure track")
+levels(data$rank)
+```
+
+    ## [1] "teaching"     "tenure track" "tenured"
+
+``` r
+levels(data$rank_relevel)
+```
+
+    ## [1] "tenure track" "teaching"     "tenured"
+
+### Exercise 13 Rank_relevel model
+
+Now that the reference group is tenure track, let’s fit another
+regression model.
+
+``` r
+m_rank_relevel <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ rank_relevel, data = data)
+tidy(m_rank_relevel)
+```
+
+    ## # A tibble: 3 × 5
+    ##   term                 estimate std.error statistic   p.value
+    ##   <chr>                   <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)            4.15      0.0521    79.7   2.58e-271
+    ## 2 rank_relevelteaching   0.130     0.0748     1.73  8.37e-  2
+    ## 3 rank_releveltenured   -0.0155    0.0623    -0.249 8.04e-  1
+
+``` r
+glance(m_rank_relevel)
+```
+
+    ## # A tibble: 1 × 12
+    ##   r.squared adj.r.squared sigma statistic p.value    df logLik   AIC   BIC
+    ##       <dbl>         <dbl> <dbl>     <dbl>   <dbl> <dbl>  <dbl> <dbl> <dbl>
+    ## 1    0.0116       0.00733 0.542      2.71  0.0679     2  -372.  752.  768.
+    ## # ℹ 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
+
+There are two slopes, and the reference group is tenure track.  
+The overall model: score = 4.155 + 0.1297(teaching) - 0.0155(tenured).  
+The first slope is 0.1297. One unit increase in rank is associated with
+0.1297 increase in the average score. One unit increase here refers to
+the teaching group, and they have a 4.155 + 0.1297(1) - 0.0155(0) =
+4.2843 average rating.  
+The second slope is -0.0155. One unit increase in rank is associated
+with 0.0155 decrease in the average score. One unit increase here is the
+tenured group, and they have a 4.155 + 0.1297(0) - 0.0155(1) = 4.139
+average rating.  
+The R^2 is 0.0116. This means that rank explains 1.16% of the variance
+in average scores. Also, it is not significant. Rank is not a
+significant predictor of score.
+
+### Exercise 14
