@@ -13,7 +13,7 @@ library(tidymodels)
 library(openintro)
 ```
 
-## Exercise 1
+## Exercise 1 Getting to know the data
 
 ```{r loaddata}
 data <- evals
@@ -33,7 +33,7 @@ summary(data$score)
 
 The mean rating is 4.18. Students were, on average, pretty satisfied with their professors. With a max of 5, and a min of 2.3. There are also 3 outliers on the lower end according to the boxplot. This is what I expected. Students rated on 463 courses taught by 94 professors, so I expected this variance. I think an average of 4.18 is fair and pretty good. 
 
-## Exercise 2
+## Exercise 2 Visual
 
 ```{r scorebty}
 data %>% 
@@ -43,7 +43,7 @@ data %>%
 
 I made the dots transparent. For the darker dots, it means that more people rated appearance and score that way. According to this graph, I think there is a positive relationship between score and beauty rating. However, it's not very clear. There could be no relationship too because the dots are pretty scattered all over the place. 
 
-### Exercise 3
+### Exercise 3 Visual improve
 ```{r jitter}
 data %>% 
   ggplot(aes(x = bty_avg, y = score)) + geom_jitter() + 
@@ -52,19 +52,18 @@ data %>%
 
 I don't know what jitter means, so I looked it up in the Help panel. It says that jitter "adds a small amount of random variation to the location fo each point". It can help with reducing overlap, especially for our dataset which has a lot of overlapping points. This means that the first graph might be misleading because we can't see all the data as they were stacked on top of each other. However, I made the dots transparent, so I still retained this information. 
 
-### Exercise 4
+### Exercise 4 Beauty model
 ```{r}
 m_bty <- linear_reg() %>% 
   set_engine("lm") %>% 
-  fit(score ~ bty_avg, data = data) %>% 
-  tidy()
-m_bty
+  fit(score ~ bty_avg, data = data)
+tidy(m_bty)
 ```
 
 From the output table, the linear model will be:
 score = 3.88 + 0.067(bty_avg)
 
-### Exercise 5
+### Exercise 5 Visual with regression line
 ```{r replot, message=FALSE}
 data %>% 
   ggplot(aes(x = bty_avg, y = score)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE) + 
@@ -73,9 +72,42 @@ data %>%
        y = "Average Professor Evaluation")
 ```
 
-### Exercise 6
-The slope of the linear model is 0.0666. This means that with one unit increase in average beauty rating, there will be a 0.0666 unit increase in the average professor evaluation. 
+### Exercise 6 Interpreting the slope
+Looking at the table from exercise 4, the slope of the linear model is 0.0666. This means that with one unit increase in average beauty rating, there will be a 0.0666 unit increase in the average professor evaluation. 
 
+
+### Exercise 7 Interpreting the intercept
+Again, looking at the table from exercise 4, the intercept is 3.88. This means that when there is a 0 for the average beauty rating for a professor, the average professor evaluation (score) is 3.88. Theoretically, this makes sense. However, in the context of this data, the intercept doesn't make sense. I checked the description of this data. The beauty ratings are from 1-10. Thus, there wouldn't be a 0 for the average beauty rating. 
+
+### Exercise 8 Interpreting R^2
+```{r Rsquared}
+glance(m_bty)
+```
+
+The R^2 is 0.035. Sine we only have one predictor, I just looked at the R^2, and not the adjusted R^2. This means that the average beauty rating explained 3.5% of the variance in the average professor evaluation. 
+
+### Exercise 9 Gender model and interpretation
+```{r gendermodel}
+m_gen <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ gender, data = data)
+tidy(m_gen)
+```
+
+The linear model:       
+y = 4.093 + 0.142x       
+Score = 4.093 + 0.142(gender)         
+The slope is 0.142. This means that with one unit increase in gender, the score increases by 0.142 unit. However, I cannot tell from the data the numeric representation for each gender. The intercept is 4.093. This means that when the gender is 0, the average professor evaluation score is 4.093.     
+I am curious to find out which gender is represented by 0. Let's calculate the mean score for each gender.   
+```{r meangender}
+data %>% 
+  group_by(gender) %>% 
+  summarise(mean_score = mean(score, na.rm = TRUE))
+```
+
+
+As we see from the table, females have an average score of 4.0928. This tells me that females are denoted as 0, and males as 1. Now let's interpret the slope and intercept once again with this information in mind. We have an intercept of 4.093. This means that females had an average of 4.093 in score. Males, on average, had a 0.142 higher score in rating than females.
+The 0 here makes sense in the context of the data.
 
 ## Hint
 
