@@ -165,33 +165,12 @@ tidy(m_gen)
 The linear model:  
 y = 4.093 + 0.142x  
 Score = 4.093 + 0.142(gender)  
-The slope is 0.142. This means that with one unit increase in gender,
-the score increases by 0.142 unit. However, I cannot tell from the data
-the numeric representation for each gender. The intercept is 4.093. This
-means that when the gender is 0, the average professor evaluation score
-is 4.093.  
-I am curious to find out which gender is represented by 0. Let’s
-calculate the mean score for each gender.
-
-``` r
-data %>% 
-  group_by(gender) %>% 
-  summarise(mean_score = mean(score, na.rm = TRUE))
-```
-
-    ## # A tibble: 2 × 2
-    ##   gender mean_score
-    ##   <fct>       <dbl>
-    ## 1 female       4.09
-    ## 2 male         4.23
-
-As we see from the table, females have an average score of 4.0928. This
-tells me that females are denoted as 0, and males as 1. Now let’s
-interpret the slope and intercept once again with this information in
-mind. We have an intercept of 4.093. This means that females had an
-average of 4.093 in score. Males, on average, had a 0.142 higher score
-in rating than females. The 0 here makes sense in the context of the
-data.
+According to the table, female is the baseline group.  
+We have an intercept of 4.093. This means that females had an average of
+4.093 in score. The slope is 0.142. This means that with one unit
+increase in gender, the score increases by 0.142 unit. Males, on
+average, had a 0.142 higher score in rating than females. The 0 here
+makes sense in the context of the data.
 
 ### Exercise 10 More on gender
 
@@ -216,26 +195,12 @@ tidy(m_rank)
     ## 2 ranktenure track   -0.130    0.0748     -1.73 8.37e-  2
     ## 3 ranktenured        -0.145    0.0636     -2.28 2.28e-  2
 
-There are two slopes.  
-The overall equation is: score = 4.284 -0.1297(x1) - 0.1452(x2) Again, I
-want to have an idea of how these three categories are represented using
-numerical values.
+There are two slopes, and the reference group is teaching, according to
+the table.  
+The overall equation is: score = 4.284 -0.1297(tenure track) -
+0.1452(tenured)
 
-``` r
-data %>% 
-  group_by(rank) %>% 
-  summarise(mean_score = mean(score, na.rm=TRUE))
-```
-
-    ## # A tibble: 3 × 2
-    ##   rank         mean_score
-    ##   <fct>             <dbl>
-    ## 1 teaching           4.28
-    ## 2 tenure track       4.15
-    ## 3 tenured            4.14
-
-It seems like teaching is the reference group. There are two slopes. The
-first slope (-0.13) is for the tenure track group, and the reference
+The first slope (-0.13) is for the tenure track group, and the reference
 group is the teaching group, score = 4.284 - 0.13(1) - 0.15(0) = 4.155.
 This means that when the rank is 0 (teaching group), the mean score is
 4.284, which is the intercept. With one unit increase in rank, there
@@ -308,4 +273,84 @@ The R^2 is 0.0116. This means that rank explains 1.16% of the variance
 in average scores. Also, it is not significant. Rank is not a
 significant predictor of score.
 
-### Exercise 14
+### Exercise 14 Creat tenure_eligible
+
+``` r
+data <- data %>% 
+  mutate(tenure_eligible = if_else(rank == "teaching", "no", "yes"))
+```
+
+### Exercise 15 Tenure eligible model
+
+``` r
+m_tenure_eligible <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ tenure_eligible, data = data)
+tidy(m_tenure_eligible)
+```
+
+    ## # A tibble: 2 × 5
+    ##   term               estimate std.error statistic   p.value
+    ##   <chr>                 <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)           4.28     0.0536     79.9  2.72e-272
+    ## 2 tenure_eligibleyes   -0.141    0.0607     -2.32 2.10e-  2
+
+``` r
+glance(m_tenure_eligible)
+```
+
+    ## # A tibble: 1 × 12
+    ##   r.squared adj.r.squared sigma statistic p.value    df logLik   AIC   BIC
+    ##       <dbl>         <dbl> <dbl>     <dbl>   <dbl> <dbl>  <dbl> <dbl> <dbl>
+    ## 1    0.0115       0.00935 0.541      5.36  0.0210     1  -372.  750.  762.
+    ## # ℹ 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
+
+According to the output, the reference group is the no group.  
+Score = 4.284 - 0.141(tenure_eligible).  
+The intercept is 4.284, meaning that when tenure_eligible is 0 (i.e.,
+no), the average score is 4.284. The slope is -0.141, meaning with one
+unit increase in tenure_eligible, which will be the yes group, there is
+a 0.141 unit decrease in the average score. So, the average score for
+the yes group is 4.143.  
+R^2 = 0.0115, p = 0.02. This means that whether one is tenure eligible
+explains 1.15% of the variance in the average score. It is a significant
+predictor.
+
+### Additional quest Rank value
+
+I was wondering what will happen if we present rank as numerical values.
+First create a new variable rank_value to
+
+``` r
+data<- data %>% 
+  mutate(rank_value = if_else(rank == "teaching", 0, if_else(rank == "tenure track", 1, 2)))
+m_rank_value <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ rank_value, data = data)
+tidy(m_rank_value)
+```
+
+    ## # A tibble: 2 × 5
+    ##   term        estimate std.error statistic   p.value
+    ##   <chr>          <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)   4.26      0.0482     88.4  2.61e-291
+    ## 2 rank_value   -0.0660    0.0310     -2.13 3.37e-  2
+
+``` r
+glance(m_rank_value)
+```
+
+    ## # A tibble: 1 × 12
+    ##   r.squared adj.r.squared sigma statistic p.value    df logLik   AIC   BIC
+    ##       <dbl>         <dbl> <dbl>     <dbl>   <dbl> <dbl>  <dbl> <dbl> <dbl>
+    ## 1   0.00975       0.00760 0.542      4.54  0.0337     1  -372.  750.  763.
+    ## # ℹ 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
+
+This time only one slope. The baseline group is still teaching, but the
+numeric representation is that 0:teaching, 1:tenure track, 2: tenured.
+The slope is -0.066, with one unit increase in rank_value, score will
+decrease by -0.066. We got a different R^2 value again: 0.0098. Our
+model explains 0.98% of the variance in score and it is a significant
+predictor. So, the association is telling us that the senior the
+professor, the lower the average rating. However, this conclusion is
+only correlational and not causal.

@@ -96,18 +96,11 @@ tidy(m_gen)
 
 The linear model:       
 y = 4.093 + 0.142x       
-Score = 4.093 + 0.142(gender)         
-The slope is 0.142. This means that with one unit increase in gender, the score increases by 0.142 unit. However, I cannot tell from the data the numeric representation for each gender. The intercept is 4.093. This means that when the gender is 0, the average professor evaluation score is 4.093.     
-I am curious to find out which gender is represented by 0. Let's calculate the mean score for each gender.   
-```{r meangender}
-data %>% 
-  group_by(gender) %>% 
-  summarise(mean_score = mean(score, na.rm = TRUE))
-```
-
-As we see from the table, females have an average score of 4.0928. This tells me that females are denoted as 0, and males as 1. Now let's interpret the slope and intercept once again with this information in mind. We have an intercept of 4.093. This means that females had an average of 4.093 in score. Males, on average, had a 0.142 higher score in rating than females.
+Score = 4.093 + 0.142(gender)   
+According to the table, female is the baseline group.     
+We have an intercept of 4.093. This means that females had an average of 4.093 in score. The slope is 0.142. This means that with one unit increase in gender, the score increases by 0.142 unit. Males, on average, had a 0.142 higher score in rating than females.
 The 0 here makes sense in the context of the data.
-
+ 
 ### Exercise 10 More on gender
 Based on the previous exercise, we can write down the equation for each gender.     
 Female: score = 4.093 + 0.142(0) = 4.093.     
@@ -121,16 +114,10 @@ m_rank <- linear_reg() %>%
 tidy(m_rank)
 ```
 
-There are two slopes.       
-The overall equation is: score = 4.284 -0.1297(x1) - 0.1452(x2)
-Again, I want to have an idea of how these three categories are represented using numerical values.
-```{r meanrank}
-data %>% 
-  group_by(rank) %>% 
-  summarise(mean_score = mean(score, na.rm=TRUE))
-```
+There are two slopes, and the reference group is teaching, according to the table.          
+The overall equation is: score = 4.284 -0.1297(tenure track) - 0.1452(tenured)
 
-It seems like teaching is the reference group. There are two slopes. The first slope (-0.13) is for the tenure track group, and the reference group is the teaching group, score = 4.284 - 0.13(1) - 0.15(0) = 4.155. This means that when the rank is 0 (teaching group), the mean score is 4.284, which is the intercept. With one unit increase in rank, there will be a 0.13 unit decrease in score. One unit increase in rank refers to the tenure track group. So, the tenure track group has an average scoring of 4.155.      
+The first slope (-0.13) is for the tenure track group, and the reference group is the teaching group, score = 4.284 - 0.13(1) - 0.15(0) = 4.155. This means that when the rank is 0 (teaching group), the mean score is 4.284, which is the intercept. With one unit increase in rank, there will be a 0.13 unit decrease in score. One unit increase in rank refers to the tenure track group. So, the tenure track group has an average scoring of 4.155.      
 The second slope (-0.145) is for the tenured group, and the reference group is the teaching group, score = 4.284 - 0.13(0) - 0.145(1) = 4.139. This means that when the rank is 0 (teaching group), the mean score is 4.284, which is the intercept. With one unit increase in rank, there will be a 0.145 unit decrease in score. One unit increase in rank refers to the tenured group in this equation. So, the tenured group has an average scoring of 4.139.
 
 ### Exercise 12 Creating rank_relevel
@@ -156,4 +143,36 @@ The first slope is 0.1297. One unit increase in rank is associated with 0.1297 i
 The second slope is -0.0155. One unit increase in rank is associated with 0.0155 decrease in the average score. One unit increase here is the tenured group, and they have a 4.155 + 0.1297(0) - 0.0155(1) = 4.139 average rating.     
 The R^2 is 0.0116. This means that rank explains 1.16% of the variance in average scores. Also, it is not significant. Rank is not a significant predictor of score. 
 
-### Exercise 14
+### Exercise 14 Creat tenure_eligible
+```{r tenure_eligible}
+data <- data %>% 
+  mutate(tenure_eligible = if_else(rank == "teaching", "no", "yes"))
+```
+
+### Exercise 15 Tenure eligible model
+```{r elgiblemodel}
+m_tenure_eligible <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ tenure_eligible, data = data)
+tidy(m_tenure_eligible)
+glance(m_tenure_eligible)
+```
+
+According to the output, the reference group is the no group.    
+Score = 4.284 - 0.141(tenure_eligible).   
+The intercept is 4.284, meaning that when tenure_eligible is 0 (i.e., no), the average score is 4.284. The slope is -0.141, meaning with one unit increase in tenure_eligible, which will be the yes group, there is a 0.141 unit decrease in the average score. So, the average score for the yes group is 4.143.     
+R^2 = 0.0115, p = 0.02. This means that whether one is tenure eligible explains 1.15% of the variance in the average score. It is a significant predictor.   
+
+### Additional quest Rank value
+I was wondering what will happen if we present rank as numerical values. First create a new variable rank_value to 
+```{r}
+data<- data %>% 
+  mutate(rank_value = if_else(rank == "teaching", 0, if_else(rank == "tenure track", 1, 2)))
+m_rank_value <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(score ~ rank_value, data = data)
+tidy(m_rank_value)
+glance(m_rank_value)
+```
+
+This time only one slope. The baseline group is still teaching, but the numeric representation is that 0:teaching, 1:tenure track, 2: tenured. The slope is -0.066, with one unit increase in rank_value, score will decrease by -0.066. We got a different R^2 value again: 0.0098. Our model explains 0.98% of the variance in score and it is a significant predictor. So, the association is telling us that the senior the professor, the lower the average rating. However, this conclusion is only correlational and not causal.   
